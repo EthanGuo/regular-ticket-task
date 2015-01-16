@@ -1,7 +1,7 @@
 # -*-coding: utf-8-*-
 
 from celery import Celery
-from lib import configuration
+from op import configuration
 import celeryconfig
 
 
