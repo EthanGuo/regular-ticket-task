@@ -1,0 +1,23 @@
+*Possible Owner*：
+bq.{{ ef.features.issue_owner }}
+*类型*：
+bq.{{ ef.tag }}
+*当前版本Log样本数*：
+bq.{{ ef.count }}
+{% if ef.tag in ["system_app_crash", "system_app_wtf"] %}
+*Error特征*：
+{quote}Exception: {{ ef.features.exception }}
+Detail: {{ ef.features.detail }}{quote}
+{% elif ef.tag == "SYSTEM_TOMBSTONE" %}
+*Error特征*：
+{quote}Signal: {{ ef.features.signal }}
+Backtrace:
+{% for bc in ef.features.backtrace %}{{ bc }}
+{% endfor %}{quote}
+{% elif ef.tag == "system_app_anr" %}
+*Error特征*：
+{quote}Detail: {{ ef.features.detail }}{quote}
+{% endif %}
+*当前产品数据ID*:
+{quote}{% for dropbox_id in dropbox_ids %}[{{loop.index}}|{{ url }}{{ dropbox_id }}] {% endfor %}
+{quote}

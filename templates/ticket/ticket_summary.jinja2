@@ -1,0 +1,1 @@
+[{{ product | upper }}][{{ ef.tag }}]{{ ef.features.issue_owner }}{% if ef.tag in ["system_app_crash", "system_app_wtf"] %}: {{ ef.features.exception }}{% elif tag == "system_app_anr" %}: {{ ef.features.detail }}{% endif %}
