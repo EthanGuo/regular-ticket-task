@@ -21,7 +21,7 @@ DEFAULT_CONFIG = {
             'SYSTEM_TOMBSTONE': 5
         },
         'ver_control':{
-            'development': 0,
+            'development': 2,
             'production': 1,
             'stable': 1
         }
@@ -29,11 +29,12 @@ DEFAULT_CONFIG = {
 
 
 def valide_bts_info(bts_info):
-    if not bts_info:  # for debug purpose, should return None
-        return DEFAULT_CONFIG
+    if not bts_info:  # for debug purpose, return DEFAULT_CONFIG
+        return None
     for key in ['type', 'username', 'password', 'url', 'project', 'threshold', 'ver_control']:
         if key not in bts_info.keys() or not bts_info[key]:
-            return DEFAULT_CONFIG # for debug purpose, should return None
+            return None # for debug purpose, return DEFAULT_CONFIG
+    return bts_info
 
 
 def get_target_versions(prod_info, bts_info):
@@ -61,7 +62,7 @@ def get_dropbox_ids(product, feature_id):
 def detect_component(bts_info, ef):
     issue_owner, comp = ef.get('features', {}).get('issue_owner'), None
     if issue_owner:
-        for k, v in bts_info.get('components').iteritems():
+        for k, v in bts_info.get('components', {}).iteritems():
             if issue_owner in v:
                 comp = k
                 break
@@ -187,6 +188,7 @@ def ticket_worker():
         for prod_info in products_info:
             product, bts_info = prod_info.get('_id'), valide_bts_info(prod_info.get('bts'))
             if not bts_info or not product:
+                print "product: %s, bts info missing" %(product)
                 continue
             target_versions = get_target_versions(prod_info, bts_info)
             for ver_type in target_versions.keys():

@@ -2,7 +2,7 @@
 bq.{{ ef.features.issue_owner }}
 *类型*：
 bq.{{ ef.tag }}
-*Log样本数*：
+*当前版本Log样本数*：
 bq.{{ ef.count }}
 {% if ef.tag in ["system_app_crash", "system_app_wtf"] %}
 *Error特征*：
@@ -18,6 +18,6 @@ Backtrace:
 *Error特征*：
 {quote}Detail: {{ ef.features.detail }}{quote}
 {% endif %}
-*数据ID*:
+*当前产品数据ID*:
 {quote}{% for dropbox_id in dropbox_ids %}[{{loop.index}}|{{ url }}{{ dropbox_id }}] {% endfor %}
 {quote}
