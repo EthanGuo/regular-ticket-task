@@ -12,7 +12,7 @@ CELERYBEAT_SCHEDULE = {
     'ticket-task': {
         'task': 'tasks.job_ticket_task',
         #'schedule': crontab(minute=0, hour=4),
-        'schedule': timedelta(seconds=60)
+        'schedule': timedelta(seconds=3600)
     },
 }
 
