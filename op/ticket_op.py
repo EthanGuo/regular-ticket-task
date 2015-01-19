@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import configuration as cf
-from request_handler import request_post
 from bts import JiraHandler
 from utils import check_request_data
 

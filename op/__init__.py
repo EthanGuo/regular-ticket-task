@@ -3,8 +3,7 @@
 from data_fetcher import *
 from data_writer import *
 from ticket_op import *
-from utils import renderTemplate
-import configuration as cf
+from utils import renderTemplate, get_config, get_config_int
 
 
 DEFAULT_CONFIG = {
@@ -56,7 +55,7 @@ def get_dropbox_ids(product, feature_id):
         for item in ret.get('data'):
             if item.get('_id'):
                 dropbox_ids.append(item['_id'])
-    return dropbox_ids[:cf.getint('ticket_service', 'MAX_DROPBOX_LENGTH')]
+    return dropbox_ids[:get_config_int('ticket_service', 'MAX_DROPBOX_LENGTH')]
 
 
 def detect_component(bts_info, ef):
@@ -83,7 +82,7 @@ def ticket_submit(product, version, ver_type, bts_info, ef):
             summary=renderTemplate('ticket_summary.jinja2', {'product': product, 'ef': ef}),
             description=renderTemplate('ticket_description.jinja2', {
                 'ef': ef, 
-                'url': cf.get('dashboard_service', 'SERVER_URL') + cf.get('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
+                'url': get_config('dashboard_service', 'SERVER_URL') + get_config('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
                 'dropbox_ids': get_dropbox_ids(product, ef.get('id'))})
     )
     if ret.get('code') == 0:
@@ -111,7 +110,7 @@ def ticket_reopen(ticket_id, version, bts_info, product, ef):
                 ticket_id=ticket_id,
                 comment=renderTemplate('comment_reopen.jinja2', {
                     'version': version, 
-                    'url': cf.get('dashboard_service', 'SERVER_URL') + cf.get('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
+                    'url': get_config('dashboard_service', 'SERVER_URL') + get_config('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
                     'dropbox_ids': get_dropbox_ids(product, ef.get('id'))}) # TODO: should append new ids 
             )
 
