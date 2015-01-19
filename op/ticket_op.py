@@ -50,3 +50,12 @@ def get_proj_components(**kwargs):
         return dict(code=code, data={'components': ret}, msg='')
     else:
         return dict(code=1, data={}, msg='required fields missing or illegal')
+
+
+def get_ticket_dropbox_ids(**kwargs):
+    data = check_request_data(kwargs)
+    if data and data['type'] in OBJS.keys():
+        code, ret = OBJS[data['type']](data).get_ticket_dropbox_ids(data)
+        return dict(code=code, data={'dropbox_ids': ret}, msg='')
+    else:
+        return dict(code=1, data={}, msg='required fields missing or illegal')

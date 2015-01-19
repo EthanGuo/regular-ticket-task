@@ -2,7 +2,7 @@
 
 from request_handler import request_get
 from request_handler import request_post
-from utils import get_config
+from utils import get_config, get_config_int
 
 
 def get_products_info():
@@ -21,13 +21,14 @@ def get_prod_ver_error_collection(prod, version, page=1, pageSize=30):
     )
 
 
-def get_prod_feature_dropbox_ids(prod, feature_id):
+def get_prod_feature_dropbox_ids(prod, feature_id, limit=get_config_int('ticket_service', 'MAX_DROPBOX_LENGTH')):
     req_url = get_config('dashboard_service', 'SERVER_URL') + get_config('dashboard_service', 'API_QUERY_DROPBOX_IDS')
     return request_get(
                 req_url=req_url,
                 headers={'Authorization': 'Bearer 3A9A34CF-12CD-4A56-B18D-71D9FD3654BD'},
                 product=prod,
-                errorfeature=feature_id
+                errorfeature=feature_id,
+                limit=limit
     )
 
 
