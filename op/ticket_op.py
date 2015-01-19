@@ -2,28 +2,53 @@
 
 import configuration as cf
 from request_handler import request_post
+from bts import JiraHandler
+from utils import check_request_data
+
+
+OBJS = {'jira': JiraHandler}
 
 
 def get_ticket_status(**kwargs):
-    req_url = cf.get('ticket_service', 'SERVER_URL') + cf.get('ticket_service', 'API_TICKET_STATUS')
-    return request_post(req_url, {'Content-Type': 'application/json'}, kwargs)
+    data = check_request_data(kwargs)
+    if data and data['type'] in OBJS.keys():
+        code, action = OBJS[data['type']](data).get_ticket_status(data)
+        return dict(code=code, data={'action': action}, msg='')
+    else:
+        return dict(code=1, data={}, msg='required fields missing or illegal')
 
 
 def reopen_ticket(**kwargs):
-    req_url = cf.get('ticket_service', 'SERVER_URL') + cf.get('ticket_service', 'API_TICKET_REOPEN')
-    return request_post(req_url, {'Content-Type': 'application/json'}, kwargs)
+    data = check_request_data(kwargs)
+    if data and data['type'] in OBJS.keys():
+        code, ret = OBJS[data['type']](data).reopen_ticket(data)
+        return dict(code=code, data={}, msg=ret)
+    else:
+        return dict(code=1, data={}, msg='required fields missing or illegal')
 
 
 def add_comment(**kwargs):
-    req_url = cf.get('ticket_service', 'SERVER_URL') + cf.get('ticket_service', 'API_TICKET_COMMENT')
-    return request_post(req_url, {'Content-Type': 'application/json'}, kwargs)
+    data = check_request_data(kwargs)
+    if data and data['type'] in OBJS.keys():
+        code, ret = OBJS[data['type']](data).add_comment(data)
+        return dict(code=code, data={}, msg=ret)
+    else:
+        return dict(code=1, data={}, msg='required fields missing or illegal')
 
 
 def submit_ticket(**kwargs):
-    req_url = cf.get('ticket_service', 'SERVER_URL') + cf.get('ticket_service', 'API_TICKET_CREATE')
-    return request_post(req_url, {'Content-Type': 'application/json'}, kwargs)
+    data = check_request_data(kwargs)
+    if data and data['type'] in OBJS.keys():
+        code, ret = OBJS[data['type']](data).create_ticket(data)
+        return dict(code=code, data=ret, msg='')
+    else:
+        return dict(code=1, data={}, msg='required fields missing or illegal')
 
 
 def get_proj_components(**kwargs):
-    req_url = cf.get('ticket_service', 'SERVER_URL') + cf.get('ticket_service', 'API_PROJ_COMPONENTS')
-    return request_post(req_url, {'Content-Type': 'application/json'}, kwargs)
+    data = check_request_data(kwargs)
+    if data and data['type'] in OBJS.keys():
+        code, ret = OBJS[data['type']](data).get_proj_components(data)
+        return dict(code=code, data={'components': ret}, msg='')
+    else:
+        return dict(code=1, data={}, msg='required fields missing or illegal')

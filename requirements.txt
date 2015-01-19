@@ -3,8 +3,13 @@ anyjson==0.3.3
 billiard==3.3.0.19
 celery==3.1.17
 Jinja2==2.7.3
+jira==0.35
 kombu==3.0.24
 MarkupSafe==0.23
+oauthlib==0.7.2
 pymongo==2.7.2
 pytz==2014.10
 requests==2.5.1
+requests-oauthlib==0.4.2
+six==1.9.0
+tlslite==0.4.8
