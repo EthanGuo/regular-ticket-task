@@ -169,7 +169,6 @@ def go_through_efs(data, product, version, ver_type, bts_info):
 
 def handle_prod_ver(product, version, ver_type, bts_info):
     print "Analyze: %s:%s(%s)" %(product, version, ver_type)
-    version = '20150115.0137'
     ec = get_prod_ver_error_collection(product, version)
     if ec:
         go_through_efs(ec.get('data'), product, version, ver_type, bts_info)
