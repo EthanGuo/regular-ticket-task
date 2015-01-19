@@ -22,20 +22,9 @@ class JiraHandler(object):
             return int(sys_ver.split('.')[1]) > int(fixed_ver.split('.')[1])
 
 
-    def detect_comments_vers(self, issue):
-        ret = []
-        for com in issue.fields.comment.comments:
-            if com.author.name == self.myjira.current_user():
-                match = re.findall(r'\s+(\d+(?:\.\d+)+(?:\/\d+)?)\s+', com.body)
-                if match:
-                    ret.append(match[0])
-        return ret
-
-
     def detect_max_ver(self, issue):
         if issue.fields.versions:
             target_vers = [ver.name for ver in issue.fields.versions]
-            target_vers.extend(self.detect_comments_vers(issue))
             if len(target_vers) > 1:
                 maxver = ""
                 for i in range(len(target_vers) - 1):
@@ -64,10 +53,10 @@ class JiraHandler(object):
                                     return 0, 'reopen'
                             else:
                                 return 0, 'no-fix-version'
+                    elif issue.fields.resolution.name == 'Not Fixed':
+                        return 0, 'append-dropbox-id'
                 else:
                     return 0, 'append-dropbox-id'
-            else:
-                return 0, 'idle'
         else:
             return 0, 'append-dropbox-id'
         return 0, 'idle'
@@ -105,7 +94,7 @@ class JiraHandler(object):
         options = self.myjira.transitions(issue)
         for option in options:
             if option.get('name') == 'Reopen':
-                self.myjira.transition_issue(issue, option.get('id'))
+                self.myjira.transition_issue(issue, option.get('id'), resolution={'id': '6'})
                 return 0, 'ok'
         else:
             return 1, 'ticket is open, how to reopen it?'
@@ -182,3 +171,17 @@ class JiraHandler(object):
             )
             return 0, {'ticket_id': new_issue.key, 'url': self.gen_url(data, new_issue.key)}
         return 1, None
+
+
+    def detect_db_ids(self, content, reg):
+        return re.findall(reg, content)
+
+
+    def get_ticket_dropbox_ids(self, data):
+        issue = self.get_ticket(data.get('ticket_id'))
+        ret = []
+        ret.extend(self.detect_db_ids(issue.fields.description, r'(?:%s)(\w+)]' %(data.get('ticket_url'))))
+        for com in issue.fields.comment.comments:
+            if com.author.name == self.myjira.current_user():
+                ret.extend(self.detect_db_ids(com.body, r'(?:%s)(\w+)]' %(data.get('ticket_url'))))
+        return 0, ret
