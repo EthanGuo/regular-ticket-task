@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from data_fetcher import *
-from data_writer import *
+from db_op import *
 from ticket_op import *
 from utils import renderTemplate, get_config, get_config_int
 
