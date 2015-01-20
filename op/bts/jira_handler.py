@@ -8,6 +8,7 @@ import re
 class JiraHandler(object):
 
     def __init__(self, data):
+        self.url = data['url']
         self.myjira = JIRA(options={'server': data['url']}, basic_auth=(data['username'], data['password']))
 
 
@@ -150,11 +151,11 @@ class JiraHandler(object):
             self.myjira.create_version(name=sys_ver, project=proj)
 
 
-    def gen_url(self, data, ticket_id):
-        if data.get('url').endswith('/'):
-            return data.get('url') + 'browse/' + ticket_id
+    def gen_url(self, ticket_id):
+        if self.url.endswith('/'):
+            return self.url + 'browse/' + ticket_id
         else:
-            return data.get('url') + '/browse/' + ticket_id
+            return self.url + '/browse/' + ticket_id
 
 
     def create_ticket(self, data):
@@ -169,7 +170,7 @@ class JiraHandler(object):
                 summary=data.get('summary'),
                 description=data.get('description')
             )
-            return 0, {'ticket_id': new_issue.key, 'url': self.gen_url(data, new_issue.key)}
+            return 0, {'ticket_id': new_issue.key, 'url': self.gen_url(new_issue.key)}
         return 1, None
 
 
