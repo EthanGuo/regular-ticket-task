@@ -17,8 +17,7 @@ def valide_bts_info(bts_info):
 
 
 def get_target_versions(prod_info, bts_info):
-    ver_control = bts_info.get('ver_control')
-    ret = {}
+    ver_control, ret = bts_info.get('ver_control'), {}
     for ver_type in ver_control.keys():
         versions = prod_info.get('versions', {})
         if versions.get(ver_type):
@@ -29,8 +28,7 @@ def get_target_versions(prod_info, bts_info):
 
 
 def get_dropbox_ids(product, feature_id):
-    ret = get_prod_feature_dropbox_ids(product, feature_id)
-    dropbox_ids = []
+    ret, dropbox_ids = get_prod_feature_dropbox_ids(product, feature_id), []
     if ret:
         for item in ret.get('data'):
             if item.get('_id'):
@@ -41,26 +39,15 @@ def get_dropbox_ids(product, feature_id):
 def append_ids(ticket_id, version, bts_info, product, ef, template_name):
     last_ids = get_dropbox_ids(product, ef.get('id'))
     org_ids = get_ticket_dropbox_ids(
-                type=bts_info.get('type'),
-                url=bts_info.get('url'),
-                username=bts_info.get('username'),
-                password=bts_info.get('password'),
                 ticket_url=get_config('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
                 ticket_id=ticket_id)['data'].get('dropbox_ids', [])
     dropbox_ids = set(last_ids) - set(org_ids)
     if template_name == 'comment_append_ids.jinja2' and not dropbox_ids:
         return
-    ret = add_comment(
-            type=bts_info.get('type'),
-            url=bts_info.get('url'),
-            username=bts_info.get('username'),
-            password=bts_info.get('password'),
-            ticket_id=ticket_id,
-            comment=renderTemplate(template_name, {
-                'version': version,
-                'url': get_config('dashboard_service', 'SERVER_URL') + get_config('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
-                'dropbox_ids': dropbox_ids})
-    )
+    ret = add_comment(ticket_id=ticket_id, comment=renderTemplate(template_name, {
+            'version': version,
+            'url': get_config('dashboard_service', 'SERVER_URL') + get_config('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
+            'dropbox_ids': dropbox_ids}))
 
 
 def detect_component(bts_info, ef):
@@ -79,10 +66,6 @@ def detect_component(bts_info, ef):
 
 def ticket_submit(product, version, ver_type, bts_info, ef):
     ret = submit_ticket(
-            type=bts_info.get('type'),
-            url=bts_info.get('url'),
-            username=bts_info.get('username'),
-            password=bts_info.get('password'),
             proj=bts_info.get('project'),
             comp=detect_component(bts_info, ef),
             sys_ver=version,
@@ -90,8 +73,7 @@ def ticket_submit(product, version, ver_type, bts_info, ef):
             description=renderTemplate('ticket_description.jinja2', {
                 'ef': ef, 
                 'url': get_config('dashboard_service', 'SERVER_URL') + get_config('dashboard_service', 'API_QUERY_DROPBOX_DATA'),
-                'dropbox_ids': get_dropbox_ids(product, ef.get('id'))})
-    )
+                'dropbox_ids': get_dropbox_ids(product, ef.get('id'))}))
     if ret.get('code') == 0:
         ret = write_ticket_info(
                 product=product,
@@ -102,25 +84,13 @@ def ticket_submit(product, version, ver_type, bts_info, ef):
 
 
 def ticket_reopen(ticket_id, version, bts_info, product, ef):
-    ret = reopen_ticket(
-            type=bts_info.get('type'),
-            url=bts_info.get('url'),
-            username=bts_info.get('username'),
-            password=bts_info.get('password'),
-            ticket_id=ticket_id)
+    ret = reopen_ticket(ticket_id=ticket_id)
     if ret.get('code') == 0:
         append_ids(ticket_id, version, bts_info, product, ef, 'comment_reopen.jinja2')
 
 
 def ticket_no_fix_version(ticket_id, version, bts_info, product, ef):
-    ret = add_comment(
-            type=bts_info.get('type'),
-            url=bts_info.get('url'),
-            username=bts_info.get('username'),
-            password=bts_info.get('password'),
-            ticket_id=ticket_id,
-            comment=renderTemplate('comment_no_fix_version.jinja2', {})
-        )
+    ret = add_comment(ticket_id=ticket_id, comment=renderTemplate('comment_no_fix_version.jinja2', {}))
 
 
 def ticket_append_id(ticket_id, version, bts_info, product, ef):
@@ -142,29 +112,18 @@ ACTION_RESPONSE = {
 }
 
 def go_through_efs(data, product, version, ver_type, bts_info):
-    if data:
-        threshold = bts_info.get('threshold')
-        for ef in data:
-            if ef.get('tag') in threshold.keys() and ef.get('count') >= threshold[ef.get('tag')]:
-                if ef.get('tickets'):
-                    for ticket in ef.get('tickets'):
-                        if ticket.get('product') == product:
-                            ret = get_ticket_status(
-                                    type=bts_info.get('type'),
-                                    url=bts_info.get('url'),
-                                    username=bts_info.get('username'),
-                                    password=bts_info.get('password'),
-                                    ticket_id=ticket.get('id'),
-                                    sys_ver=version
-                            )
-                            if ret.get('code') == 0:
-                                print "Ticket: %s: %s" %(ticket.get('id'), ret['data'].get('action'))
-                                ACTION_RESPONSE[ret['data'].get('action')](ticket.get('id'), version, bts_info, product, ef)
-                            break
-                    else:
-                        ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
-                else:
-                    ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
+    threshold = bts_info.get('threshold')
+    for ef in data or []:
+        if ef.get('tag') in threshold.keys() and ef.get('count') >= threshold[ef.get('tag')]:
+            for ticket in ef.get('tickets') or []:
+                if ticket.get('product') == product:
+                    ret = get_ticket_status(ticket_id=ticket.get('id'), sys_ver=version)
+                    if ret.get('code') == 0:
+                        print "Ticket: %s: %s" %(ticket.get('id'), ret['data'].get('action'))
+                        ACTION_RESPONSE[ret['data'].get('action')](ticket.get('id'), version, bts_info, product, ef)
+                    break
+            else:
+                ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
 
 
 def handle_prod_ver(product, version, ver_type, bts_info):
@@ -180,14 +139,14 @@ def handle_prod_ver(product, version, ver_type, bts_info):
 
 
 def ticket_worker():
-    products_info = get_products_info()
-    if products_info:
-        for prod_info in products_info:
-            product, bts_info = prod_info.get('_id'), valide_bts_info(prod_info.get('bts'))
-            if not bts_info or not product:
-                print "Error: %s: bts info missing" %(product)
-                continue
-            target_versions = get_target_versions(prod_info, bts_info)
-            for ver_type in target_versions.keys():
-                for version in target_versions[ver_type]:
-                    handle_prod_ver(product, version, ver_type, bts_info)
+    products_info = get_products_info() or []
+    for prod_info in products_info:
+        product, bts_info = prod_info.get('_id'), valide_bts_info(prod_info.get('bts'))
+        if not bts_info or not product:
+            print "Error: %s: bts info missing" %(product)
+            continue
+        target_versions = get_target_versions(prod_info, bts_info)
+        init_bts_obj(bts_info)
+        for ver_type in target_versions.keys():
+            for version in target_versions[ver_type]:
+                handle_prod_ver(product, version, ver_type, bts_info)

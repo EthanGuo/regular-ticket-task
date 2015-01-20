@@ -2,4 +2,4 @@
 
 
 source env/bin/activate
-celery beat --app=worker:worker
+celery worker --beat --app=worker:worker

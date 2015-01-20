@@ -1,61 +1,66 @@
 # -*- coding: utf-8 -*-
 
 from bts import JiraHandler
-from utils import check_request_data
-
 
 OBJS = {'jira': JiraHandler}
+BTS_OBJ = None
+
+
+def init_bts_obj(bts_info):
+    global BTS_OBJ
+    if bts_info['type'] in OBJS.keys():
+        BTS_OBJ = OBJS[bts_info['type']](bts_info)
 
 
 def get_ticket_status(**kwargs):
-    data = check_request_data(kwargs)
-    if data and data['type'] in OBJS.keys():
-        code, action = OBJS[data['type']](data).get_ticket_status(data)
+    global BTS_OBJ
+    if BTS_OBJ:
+        code, action = BTS_OBJ.get_ticket_status(kwargs)
         return dict(code=code, data={'action': action}, msg='')
     else:
-        return dict(code=1, data={}, msg='required fields missing or illegal')
+        return dict(code=1, data={}, msg='Please init bts object first.')
 
 
 def reopen_ticket(**kwargs):
-    data = check_request_data(kwargs)
-    if data and data['type'] in OBJS.keys():
-        code, ret = OBJS[data['type']](data).reopen_ticket(data)
+    global BTS_OBJ
+    if BTS_OBJ:
+        code, ret = BTS_OBJ.reopen_ticket(kwargs)
         return dict(code=code, data={}, msg=ret)
     else:
-        return dict(code=1, data={}, msg='required fields missing or illegal')
+        return dict(code=1, data={}, msg='Please init bts object first.')
 
 
 def add_comment(**kwargs):
-    data = check_request_data(kwargs)
-    if data and data['type'] in OBJS.keys():
-        code, ret = OBJS[data['type']](data).add_comment(data)
+    global BTS_OBJ
+    if BTS_OBJ:
+        code, ret = BTS_OBJ.add_comment(kwargs)
         return dict(code=code, data={}, msg=ret)
     else:
-        return dict(code=1, data={}, msg='required fields missing or illegal')
+        return dict(code=1, data={}, msg='Please init bts object first.')
 
 
 def submit_ticket(**kwargs):
-    data = check_request_data(kwargs)
-    if data and data['type'] in OBJS.keys():
-        code, ret = OBJS[data['type']](data).create_ticket(data)
+    global BTS_OBJ
+    if BTS_OBJ:
+        code, ret = BTS_OBJ.create_ticket(kwargs)
         return dict(code=code, data=ret, msg='')
     else:
-        return dict(code=1, data={}, msg='required fields missing or illegal')
+        return dict(code=1, data={}, msg='Please init bts object first.')
 
 
 def get_proj_components(**kwargs):
-    data = check_request_data(kwargs)
-    if data and data['type'] in OBJS.keys():
-        code, ret = OBJS[data['type']](data).get_proj_components(data)
+    global BTS_OBJ
+    if BTS_OBJ:
+        code, ret = BTS_OBJ.get_proj_components(kwargs)
         return dict(code=code, data={'components': ret}, msg='')
     else:
-        return dict(code=1, data={}, msg='required fields missing or illegal')
+        return dict(code=1, data={}, msg='Please init bts object first.')
 
 
 def get_ticket_dropbox_ids(**kwargs):
-    data = check_request_data(kwargs)
-    if data and data['type'] in OBJS.keys():
-        code, ret = OBJS[data['type']](data).get_ticket_dropbox_ids(data)
+    global BTS_OBJ
+    if BTS_OBJ:
+        code, ret = BTS_OBJ.get_ticket_dropbox_ids(kwargs)
         return dict(code=code, data={'dropbox_ids': ret}, msg='')
     else:
-        return dict(code=1, data={}, msg='required fields missing or illegal')
+        return dict(code=1, data={}, msg='Please init bts object first.')

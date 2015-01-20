@@ -11,8 +11,8 @@ CELERY_INCLUDE = ['tasks']  # celery tasks entry
 CELERYBEAT_SCHEDULE = {
     'ticket-task': {
         'task': 'tasks.job_ticket_task',
-        #'schedule': crontab(minute=0, hour=4),
-        'schedule': timedelta(seconds=3600)
+        'schedule': crontab(minute=0, hour='*/1'),
+        #'schedule': timedelta(seconds=60)
     },
 }
 
