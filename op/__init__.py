@@ -17,8 +17,7 @@ def valide_bts_info(bts_info):
 
 
 def get_target_versions(prod_info, bts_info):
-    ver_control = bts_info.get('ver_control')
-    ret = {}
+    ver_control, ret = bts_info.get('ver_control'), {}
     for ver_type in ver_control.keys():
         versions = prod_info.get('versions', {})
         if versions.get(ver_type):
@@ -29,8 +28,7 @@ def get_target_versions(prod_info, bts_info):
 
 
 def get_dropbox_ids(product, feature_id):
-    ret = get_prod_feature_dropbox_ids(product, feature_id)
-    dropbox_ids = []
+    ret, dropbox_ids = get_prod_feature_dropbox_ids(product, feature_id), []
     if ret:
         for item in ret.get('data'):
             if item.get('_id'):
@@ -114,22 +112,18 @@ ACTION_RESPONSE = {
 }
 
 def go_through_efs(data, product, version, ver_type, bts_info):
-    if data:
-        threshold = bts_info.get('threshold')
-        for ef in data:
-            if ef.get('tag') in threshold.keys() and ef.get('count') >= threshold[ef.get('tag')]:
-                if ef.get('tickets'):
-                    for ticket in ef.get('tickets'):
-                        if ticket.get('product') == product:
-                            ret = get_ticket_status(ticket_id=ticket.get('id'), sys_ver=version)
-                            if ret.get('code') == 0:
-                                print "Ticket: %s: %s" %(ticket.get('id'), ret['data'].get('action'))
-                                ACTION_RESPONSE[ret['data'].get('action')](ticket.get('id'), version, bts_info, product, ef)
-                            break
-                    else:
-                        ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
-                else:
-                    ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
+    threshold = bts_info.get('threshold')
+    for ef in data or []:
+        if ef.get('tag') in threshold.keys() and ef.get('count') >= threshold[ef.get('tag')]:
+            for ticket in ef.get('tickets') or []:
+                if ticket.get('product') == product:
+                    ret = get_ticket_status(ticket_id=ticket.get('id'), sys_ver=version)
+                    if ret.get('code') == 0:
+                        print "Ticket: %s: %s" %(ticket.get('id'), ret['data'].get('action'))
+                        ACTION_RESPONSE[ret['data'].get('action')](ticket.get('id'), version, bts_info, product, ef)
+                    break
+            else:
+                ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
 
 
 def handle_prod_ver(product, version, ver_type, bts_info):
@@ -145,15 +139,14 @@ def handle_prod_ver(product, version, ver_type, bts_info):
 
 
 def ticket_worker():
-    products_info = get_products_info()
-    if products_info:
-        for prod_info in products_info:
-            product, bts_info = prod_info.get('_id'), valide_bts_info(prod_info.get('bts'))
-            if not bts_info or not product:
-                print "Error: %s: bts info missing" %(product)
-                continue
-            target_versions = get_target_versions(prod_info, bts_info)
-            init_bts_obj(bts_info)
-            for ver_type in target_versions.keys():
-                for version in target_versions[ver_type]:
-                    handle_prod_ver(product, version, ver_type, bts_info)
+    products_info = get_products_info() or []
+    for prod_info in products_info:
+        product, bts_info = prod_info.get('_id'), valide_bts_info(prod_info.get('bts'))
+        if not bts_info or not product:
+            print "Error: %s: bts info missing" %(product)
+            continue
+        target_versions = get_target_versions(prod_info, bts_info)
+        init_bts_obj(bts_info)
+        for ver_type in target_versions.keys():
+            for version in target_versions[ver_type]:
+                handle_prod_ver(product, version, ver_type, bts_info)
