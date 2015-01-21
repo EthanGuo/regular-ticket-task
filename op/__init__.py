@@ -114,15 +114,15 @@ ACTION_RESPONSE = {
 def go_through_efs(data, product, version, ver_type, bts_info):
     threshold = bts_info.get('threshold')
     for ef in data or []:
-        if ef.get('tag') in threshold.keys() and ef.get('count') >= threshold[ef.get('tag')]:
-            for ticket in ef.get('tickets') or []:
-                if ticket.get('product') == product:
-                    ret = get_ticket_status(ticket_id=ticket.get('id'), sys_ver=version)
-                    if ret.get('code') == 0:
-                        print "Ticket: %s: %s" %(ticket.get('id'), ret['data'].get('action'))
-                        ACTION_RESPONSE[ret['data'].get('action')](ticket.get('id'), version, bts_info, product, ef)
-                    break
-            else:
+        for ticket in ef.get('tickets') or []:
+            if ticket.get('product') == product:
+                ret = get_ticket_status(ticket_id=ticket.get('id'), sys_ver=version)
+                if ret.get('code') == 0:
+                    print "Ticket: %s: %s" %(ticket.get('id'), ret['data'].get('action'))
+                    ACTION_RESPONSE[ret['data'].get('action')](ticket.get('id'), version, bts_info, product, ef)
+                break
+        else:
+            if ef.get('tag') in threshold.keys() and ef.get('count') >= threshold[ef.get('tag')]:
                 ACTION_RESPONSE['submit_ticket'](product, version, ver_type, bts_info, ef)
 
 
